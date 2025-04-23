@@ -20,14 +20,14 @@ train = xr.open_dataset(path / "train.nc")
 test = xr.open_dataset(path / "test.nc")
 
 # chose signals - tip: filter by attrs
-# print(train.filter_by_attrs(units="Wb"))  # all attributes with units of Webbers
+# print(train.filter_by_attrs(units="Wb"))  # all attributes with units of Weber
 # print(train.filter_by_attrs(units="V"))  # all attributes with units of Volts
 # print(train.filter_by_attrs(group="magnetics"))  # all attributes in the magnetics group
 
 
-# transform signal and target xarray Datasets into columar data
+# transform signal and target xarray Datasets into columnar data
 def to_pandas(dataset: xr.Dataset, attrs: list[str]) -> pd.DataFrame:
-    """Return set of Dataset attributes as a concatanated Pandas DataFrame."""
+    """Return set of Dataset attributes as a concatenated Pandas DataFrame."""
     return pd.concat(
         [dataset[attr].transpose("time", ...).to_pandas() for attr in attrs], axis=1
     )
@@ -129,7 +129,7 @@ class Contour:
         self._handles = []
 
     def __call__(self, efit: np.ndarray, prediction: np.ndarray):
-        """Plot a comparision between EFIT++ ground truth and prediction."""
+        """Plot a comparison between EFIT++ ground truth and prediction."""
         return [
             self.plot(efit, colors="gray", label="EFIT++"),
             self.plot(prediction, colors="C0", label="Prediction"),

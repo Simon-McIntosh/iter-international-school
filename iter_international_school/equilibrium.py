@@ -5,20 +5,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import PIL
-import seaborn as sns
 import xarray as xr
 
-import iter_international_school
+import iter_international_school as iss
 
 path = pathlib.Path(appdirs.user_data_dir()) / "fair-mast"
 path.mkdir(exist_ok=True)
 
 
 def to_dataset(shot_ids: pd.Series):
-    """Return concatanated xarray Dataset for the list of input ids."""
+    """Return concatenated xarray Dataset for the list of input ids."""
     dataset = []
     for shot_index, shot_id in shot_ids.items():
-        shot = iter_international_school.Shot(shot_id)
+        shot = iss.Shot(shot_id)
         target = shot.to_dask("equilibrium", "magnetic_flux")
         signal = []
         for group in ["magnetics", "dalpha", "soft_x_rays", "thomson_scattering"]:
@@ -66,7 +65,7 @@ def flux_contour(magnetic_flux: xr.DataArray, fig, axes, **kwargs) -> PIL.Image.
 
 def make_gif(shot_id: int):
     """Make gif of dataset frames."""
-    dataset = iter_international_school.Shot(shot_id).to_dask("equilibrium", "magnetic_flux")
+    dataset = iss.Shot(shot_id).to_dask("equilibrium", "magnetic_flux")
 
     fig, axes = plt.subplots(figsize=(2, 2))
     axes.set_aspect("equal")
@@ -88,7 +87,7 @@ def make_gif(shot_id: int):
 
 
 def test_train_validate():
-    """Save test train and validate datasets for camera data challange."""
+    """Save test train and validate datasets for camera data challenge."""
     source_ids = np.array([15585, 15212, 15010, 14998, 30410, 30418, 30420])
 
     rng = np.random.default_rng(7)

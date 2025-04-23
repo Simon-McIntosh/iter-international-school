@@ -8,7 +8,7 @@ import fsspec
 import numpy as np
 import pandas as pd
 import xarray as xr
-import zarr
+import zarr.storage
 
 
 @dataclass
@@ -43,7 +43,7 @@ class Shot:
     @cached_property
     def store(self):
         """Return zarr object store."""
-        return zarr.storage.FSStore(fs=self.filesystem, url=self.url)
+        return zarr.storage.FStore(fs=self.filesystem, url=self.url)
 
     def to_dask(self, group: str, channel: str, dropna=True):
         """Return dask array from zarr store."""
@@ -78,3 +78,60 @@ class Shot:
                 )
             attrs.append(dataframe)
         return pd.concat(attrs, axis=1)
+
+
+if __name__ == "__main__":
+    # Create a Shot instance
+    shot = Shot(shot_id=29034)
+
+    # Example 1: Access a group using __getitem__
+    print("Example 1: Accessing a group")
+    try:
+        # Replace 'bolometer' with an actual group name available in your data
+        bolometer = shot["bolometer"]
+        print(f"Accessed group 'bolometer' with coordinates: {list(bolometer.coords)}")
+    except Exception as e:
+        print(f"Could not access group: {e}")
+
+    # Example 2: Convert data to a dask array
+    print("\nExample 2: Converting to dask array")
+    try:
+        # Replace with actual group and channel names
+        dask_array = shot.to_dask(group="magnetics", channel="ipla")
+        print(f"Dask array shape: {dask_array.shape}")
+        print(f"Dask array chunks: {dask_array.chunks}")
+    except Exception as e:
+        print(f"Could not convert to dask array: {e}")
+
+    # Example 3: Convert data to pandas DataFrame
+    print("\nExample 3: Converting to pandas DataFrame")
+    try:
+        # Single channel example
+        df_single = shot.to_pandas(group="magnetics", channels="ipla")
+        print("Single channel DataFrame head:")
+        print(df_single.head())
+
+        # Multiple channels example
+        df_multi = shot.to_pandas(
+            group="magnetics",
+            channels=["ipla", "bvac"],  # Replace with actual channel names
+            multi_index=True,
+        )
+        print("\nMultiple channels DataFrame with multi-index head:")
+        print(df_multi.head())
+    except Exception as e:
+        print(f"Could not convert to pandas DataFrame: {e}")
+
+    # Example 4: Interpolating to specific time points
+    print("\nExample 4: Interpolating to specific time points")
+    try:
+        import numpy as np
+
+        # Create a custom time array
+        custom_time = np.linspace(0.1, 0.5, 10)  # Replace with appropriate time range
+
+        df_interp = shot.to_pandas(group="magnetics", channels="ipla", time=custom_time)
+        print("Interpolated DataFrame head:")
+        print(df_interp.head())
+    except Exception as e:
+        print(f"Could not interpolate: {e}")

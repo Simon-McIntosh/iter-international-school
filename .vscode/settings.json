@@ -1,0 +1,33 @@
+{
+  "cSpell.words": [
+    "appdirs",
+    "bokeh",
+    "bvac",
+    "Culham",
+    "dalpha",
+    "efit",
+    "figsize",
+    "fromarray",
+    "fsspec",
+    "imas",
+    "interp",
+    "ipla",
+    "ipykernel",
+    "linestyles",
+    "logspace",
+    "matplotlib",
+    "ncol",
+    "ndarray",
+    "numpy",
+    "poloidal",
+    "reconstructor",
+    "scikit",
+    "seaborn",
+    "setuptools",
+    "simplecache",
+    "Tokamak",
+    "tqdm",
+    "xarray",
+    "zarr"
+  ]
+}
