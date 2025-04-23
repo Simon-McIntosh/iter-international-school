@@ -17,11 +17,16 @@ def to_dataset(shot_ids: pd.Series):
     """Return concatenated xarray Dataset for the list of input ids."""
     dataset = []
     for shot_index, shot_id in shot_ids.items():
-        shot = iss.Shot(shot_id)
-        target = shot.to_dask("equilibrium", "magnetic_flux")
+        shot = xr.open_datatree(
+            f"https://s3.echo.stfc.ac.uk/mast/level2/shots/{shot_id}.zarr",
+            engine="zarr",
+            chunks="auto",
+        )
+        target = shot["equilibrium"]["psi"].dropna("time").transpose("time", ...)
         signal = []
-        for group in ["magnetics", "dalpha", "soft_x_rays", "thomson_scattering"]:
-            data = shot[group].interp({"time": target.time})
+        for group in ["magnetics", "spectrometer_visible", "soft_x_rays", "thomson_scattering"]:
+            ds = xr.Dataset(shot[group])
+            data = ds.interp({"time": target.time})
             if "major_radius" in data:
                 data = data.interp({"major_radius": target.major_radius})
             for var in data.data_vars:
@@ -29,7 +34,8 @@ def to_dataset(shot_ids: pd.Series):
             signal.append(data)
         signal = xr.merge(signal, combine_attrs="drop_conflicts")
         signal["shot_index"] = "time", shot_index * np.ones(target.sizes["time"])
-        dataset.append(xr.merge([signal, target], combine_attrs="override"))
+        signal["psi"] = target
+        dataset.append(signal)
     return xr.concat(dataset, "time", join="override", combine_attrs="drop_conflicts")
 
 
@@ -65,7 +71,7 @@ def flux_contour(magnetic_flux: xr.DataArray, fig, axes, **kwargs) -> PIL.Image.
 
 def make_gif(shot_id: int):
     """Make gif of dataset frames."""
-    dataset = iss.Shot(shot_id).to_dask("equilibrium", "magnetic_flux")
+    dataset = iss.Shot(shot_id).to_dask("equilibrium", "psi")
 
     fig, axes = plt.subplots(figsize=(2, 2))
     axes.set_aspect("equal")
@@ -121,7 +127,6 @@ def test_train_validate():
 
 
 if __name__ == "__main__":
-
     # make_gif(source_ids.iloc[0])
     test_train_validate()
 
