@@ -8,7 +8,6 @@ import fsspec
 import numpy as np
 import pandas as pd
 import xarray as xr
-import zarr.storage
 
 
 @dataclass
@@ -17,11 +16,14 @@ class Shot:
 
     shot_id: int
     endpoint_url: str = "https://s3.echo.stfc.ac.uk"
+    bucket_prefix: str = "mast/level2/shots"
     storage_options: dict = field(default_factory=dict)
 
     def __getitem__(self, group: str):
         """Return group from object store."""
-        return xr.open_zarr(self.store, group=group)
+        return xr.open_zarr(
+            f"{self.endpoint_url}/{self.bucket_prefix}/{self.shot_id}.zarr", group=group
+        )
 
     @property
     def url(self) -> str:
@@ -39,11 +41,6 @@ class Shot:
             )
             | self.storage_options
         )
-
-    @cached_property
-    def store(self):
-        """Return zarr object store."""
-        return zarr.storage.FStore(fs=self.filesystem, url=self.url)
 
     def to_dask(self, group: str, channel: str, dropna=True):
         """Return dask array from zarr store."""

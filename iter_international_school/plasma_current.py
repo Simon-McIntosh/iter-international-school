@@ -7,8 +7,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import xarray as xr
 
-import iter_international_school
+import iter_international_school as iis
 
 # segment source dataset
 source_ids = np.array([15585, 15212, 15010, 14998, 30410, 30418, 30420])
@@ -26,7 +27,7 @@ split_ids = {
 sns.set_context("paper")
 plt.subplots(figsize=(8, 5.5))
 for shot_index, shot_id in enumerate(split_ids["train"]):
-    shot = iter_international_school.Shot(shot_id)
+    shot = iis.Shot(shot_id)
     shot["summary"].plasma_current.plot(label=f"shot {shot_index}")
 plt.legend()
 plt.xlabel("time s")
@@ -38,9 +39,13 @@ def to_dataframe(shot_ids: pd.Series, channels=None, columns=None):
     """Return concatanated dataframe for the list of input ids."""
     dataframes = []
     if channels is None:
-        channels = list(iter_international_school.Shot(shot_ids.iloc[0])["magnetics"])
+        channels = list(iis.Shot(shot_ids.iloc[0])["magnetics"])
     for shot_index, shot_id in shot_ids.items():
-        shot = iter_international_school.Shot(shot_id)
+        shot = xr.open_datatree(
+            f"https://s3.echo.stfc.ac.uk/mast/level2/shots/{shot_id}.zarr",
+            engine="zarr",
+            chunks="auto",
+        )
         target = shot.to_pandas("summary", "plasma_current", multi_index=False)
         dataframe = shot.to_pandas(
             "magnetics", channels, time=target.index, multi_index=False
@@ -82,7 +87,7 @@ solution.loc[:, "plasma_current"].to_csv(path / "plasma_current/perfect.csv")
 sns.set_context("paper")
 axes = plt.subplots(2, 1, figsize=(8, 5.5), sharex=True)[1]
 shot_id = split_ids["train"][0]
-shot = iter_international_school.Shot(shot_id)
+shot = iis.Shot(shot_id)
 magnetics = to_dataframe(pd.Series(shot_id), channels=channels, columns=columns[1:])
 axes[0].plot(magnetics.time, magnetics.iloc[:, 1:-2])
 shot["summary"].plasma_current.plot(
@@ -93,38 +98,3 @@ axes[1].set_xlabel("time s")
 axes[1].set_ylabel("plasma current kA")
 
 sns.despine(plt.gcf())
-
-
-"""
-pd.concat(
-    [
-        shot.to_pandas("magnetics", "center_column"),
-        shot.to_pandas("magnetics", "flux_loops"),
-    ],
-    axis=1,
-)
-
-dataframe = shot.to_pandas("magnetics", "center_column")
-dataframe.columns = pd.MultiIndex.from_product(
-    [["center_column"], dataframe.columns], names=("diagnostic", "channel")
-)
-"""
-
-
-"""
-
-channels = [
-    # "center_column",
-    "coil_currents",
-    # "coil_voltages",
-    "flux_loops",
-    # "outer_discrete",
-    # "saddle_coils",
-]
-
-shot_id =
-
-target = shot.to_dask("equilibrium", "magnetic_flux")
-# signal = shot.to_dask("magnetics", "saddle_coils").interp({"time": target.time})
-signal = shot.to_pandas("magnetics", channels, time=target.time)
-"""
