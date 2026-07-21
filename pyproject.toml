@@ -22,7 +22,7 @@ dependencies = [
     "intake-parquet (>=0.3.0,<0.4.0)",
     "bokeh (>=3.6.1,<4.0.0)",
     "intake-xarray (>=0.7.0,<0.8.0)",
-    "setuptools (>=75.6.0,<76.0.0)",
+    "setuptools (>=78.1.1)",
     "tqdm (>=4.67.1,<5.0.0)",
 ]
 
